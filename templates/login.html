@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Login · KosKita{% endblock %}
+{% block public_content %}
+<div class="login-wrap">
+  <form class="login-card" method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="brand dark">Kos<span>Kita</span><small>Sistem Informasi Manajemen Kos</small></div>
+    <h1>Masuk ke akun</h1>
+    <p>Kelola penghuni, kamar, tagihan, dan pembayaran dalam satu tempat.</p>
+    <label>Username</label><input name="username" required autofocus>
+    <label>Password</label><input type="password" name="password" required>
+    <button class="btn primary full">Masuk</button>
+  </form>
+</div>
+{% endblock %}

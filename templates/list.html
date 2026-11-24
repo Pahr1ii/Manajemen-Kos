@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}{{ config.title }} · KosKita{% endblock %}
+{% block content %}
+<div class="page-heading"><div><div class="eyebrow">DATA KOSKITA</div><h1>{{ config.title }}</h1><p>Kelola dan pantau data {{ config.title|lower }}.</p></div>{% if session.get('role') == 'admin' %}<a class="btn primary" href="{{ url_for('add_data', table=table) }}">＋ Tambah data</a>{% endif %}</div>
+<div class="panel table-panel">
+  <form class="toolbar" method="get" action="{{ url_for('list_data', table=table) }}">
+    <div class="search-box"><span>⌕</span><input type="search" name="q" value="{{ q }}" placeholder="Cari data..." aria-label="Cari data"></div>
+    <select name="filter_col" aria-label="Kolom filter" onchange="this.form.submit()"><option value="">Semua status</option>{% for field, label, kind, required in config.fields %}{% if field.startswith('status_') or field == 'kondisi' %}<option value="{{ field }}" {% if filter_col == field %}selected{% endif %}>{{ label }}</option>{% endif %}{% endfor %}</select>
+    <select name="filter_value" aria-label="Nilai filter"><option value="">Semua</option>{% for choice in filter_choices %}<option value="{{ choice }}" {% if filter_value == choice %}selected{% endif %}>{{ choice|replace('_',' ')|title }}</option>{% endfor %}</select>
+    <input type="hidden" name="per_page" value="{{ per_page }}"><button class="btn" type="submit">Terapkan</button>
+    {% if q or filter_col or filter_value %}<a class="btn" href="{{ url_for('list_data', table=table) }}">Reset</a>{% endif %}
+    <span class="toolbar-spacer"></span><a class="btn" href="{{ url_for('export_xlsx', table=table, q=q, filter_col=filter_col, filter_value=filter_value) }}">⇩ Excel</a><a class="btn" href="{{ url_for('export_csv', table=table, q=q, filter_col=filter_col, filter_value=filter_value) }}">CSV</a><button class="btn" type="button" onclick="window.print()">▤ Print</button>
+  </form>
+  <div class="table-wrap">
+  {% if rows %}<table><thead><tr>{% for key in rows[0].keys() %}<th>{{ key.replace('_',' ')|title }}</th>{% endfor %}{% if session.get('role') == 'admin' %}<th>Aksi</th>{% endif %}</tr></thead><tbody>
+  {% for row in rows %}<tr>{% for key, value in row.items() %}<td>{% if key == 'password' %}<span class="muted">••••••••</span>{% elif key.startswith('status_') or key == 'kondisi' %}<span class="status-pill">{{ value if value is not none else '—' }}</span>{% else %}{{ value if value is not none else '—' }}{% endif %}</td>{% endfor %}
+  {% if session.get('role') == 'admin' %}<td class="actions"><a class="btn small" href="{{ url_for('edit_data', table=table, record_id=row[config.pk]) }}">Edit</a><form method="post" action="{{ url_for('delete_data', table=table, record_id=row[config.pk]) }}" onsubmit="return confirm('Yakin ingin menghapus data ini?')"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn small danger" type="submit">Hapus</button></form></td>{% endif %}</tr>{% endfor %}
+  </tbody></table>{% else %}<div class="empty"><div class="empty-icon">⌕</div><strong>Data tidak ditemukan</strong><p>{% if q or filter_col %}Coba ubah kata kunci atau filter.{% else %}Belum ada data pada tabel ini.{% endif %}</p></div>{% endif %}
+  </div>
+  <div class="table-footer"><span>Menampilkan {{ ((page-1)*per_page + 1) if total else 0 }}–{{ [page*per_page,total]|min }} dari {{ total }} data</span><div class="pagination-tools"><form method="get" class="per-page-form"><input type="hidden" name="q" value="{{ q }}"><input type="hidden" name="filter_col" value="{{ filter_col }}"><input type="hidden" name="filter_value" value="{{ filter_value }}"><label for="perPage">Baris</label><select id="perPage" name="per_page" onchange="this.form.submit()">{% for n in [9,18,27] %}<option value="{{ n }}" {% if per_page == n %}selected{% endif %}>{{ n }}</option>{% endfor %}</select></form>
+  <nav class="pagination" aria-label="Pagination"><a class="page-link {% if page <= 1 %}disabled{% endif %}" href="{{ url_for('list_data', table=table, page=page-1, per_page=per_page, q=q, filter_col=filter_col, filter_value=filter_value) }}">‹</a>{% for n in range([1,page-2]|max, [pages,page+2]|min + 1) %}<a class="page-link {% if n == page %}active{% endif %}" href="{{ url_for('list_data', table=table, page=n, per_page=per_page, q=q, filter_col=filter_col, filter_value=filter_value) }}">{{ n }}</a>{% endfor %}<a class="page-link {% if page >= pages %}disabled{% endif %}" href="{{ url_for('list_data', table=table, page=page+1, per_page=per_page, q=q, filter_col=filter_col, filter_value=filter_value) }}">›</a></nav></div></div>
+</div>
+{% endblock %}

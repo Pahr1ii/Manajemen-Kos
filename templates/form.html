@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}{{ mode }} {{ config.title }} · KosKita{% endblock %}
+{% block content %}
+<div class="page-heading"><div><h1>{{ mode }} {{ config.title }}</h1><p>Isi formulir di bawah ini.</p></div></div>
+<form class="panel data-form" method="post">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  {% for name, label, kind, required in config.fields %}
+    <div class="field">
+      <label for="{{ name }}">{{ label }}{% if required %} <b>*</b>{% endif %}</label>
+      {% if kind.startswith('fk') %}
+        <select id="{{ name }}" name="{{ name }}" {% if required %}required{% endif %}>
+          {% if kind.startswith('fk_optional') %}<option value="">-- Tidak dihubungkan --</option>{% else %}<option value="">-- Pilih --</option>{% endif %}
+          {% for option in options[name] %}
+            <option value="{{ option.id }}" {% if record and record[name] == option.id %}selected{% endif %}>{{ option.id }} · {{ option.label }}</option>
+          {% endfor %}
+        </select>
+      {% elif kind.startswith('select:') %}
+        <select id="{{ name }}" name="{{ name }}" required>
+          <option value="">-- Pilih --</option>
+          {% for option in kind.split(':',1)[1].split('|') %}
+            <option value="{{ option }}" {% if record and record[name] == option %}selected{% endif %}>{{ option|replace('_',' ')|title }}</option>
+          {% endfor %}
+        </select>
+      {% elif kind == 'textarea' %}
+        <textarea id="{{ name }}" name="{{ name }}" {% if required %}required{% endif %}>{{ record[name] if record else '' }}</textarea>
+      {% else %}
+        <input id="{{ name }}" name="{{ name }}" type="{{ kind }}" {% if kind == 'number' %}step="any"{% endif %} value="{{ '' if kind == 'password' or not record else record[name] }}" {% if required and kind != 'password' %}required{% endif %} {% if kind == 'password' and not record %}required{% endif %}>
+      {% endif %}
+    </div>
+  {% endfor %}
+  <div class="form-actions"><a class="btn" href="{{ url_for('list_data', table=table) }}">Batal</a><button class="btn primary">{{ mode }} data</button></div>
+</form>
+{% endblock %}

@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Dashboard · KosKita{% endblock %}
+{% block content %}
+<div class="page-heading"><div><div class="eyebrow">RINGKASAN</div><h1>Dashboard</h1><p>Selamat datang kembali, {{ session.get('username') }}. Berikut kondisi data kos saat ini.</p></div></div>
+<div class="section-heading"><h2>Ringkasan data</h2><span class="subtle">Total data tersimpan</span></div>
+<div class="stats">{% for title, total in counts.items() %}<a class="stat-card" href="{{ url_for('list_data', table={'Pemilik':'pemilik','Penghuni':'penghuni','Gedung kos':'gedung_kos','Kamar':'kamar','Fasilitas kamar':'fasilitas_kamar','Akun pengguna':'akun_pengguna','Kontrak sewa':'kontrak_sewa','Tagihan bulanan':'tagihan_bulanan','Pembayaran':'pembayaran','Keluhan':'keluhan'}[title]) }}"><span>{{ title }}</span><strong>{{ total }}</strong><small>Lihat data →</small></a>{% endfor %}</div>
+<div class="section-heading section-gap"><h2>Pusat perhatian</h2><span class="subtle">Peringatan berdasarkan kondisi database</span></div>
+<div class="alert-grid">{% for title, total in alerts.items() %}<div class="alert-card"><span class="alert-dot {% if total %}warning{% endif %}"></span><div><strong>{{ total }}</strong><p>{{ title }}</p></div></div>{% endfor %}</div>
+<div class="panel activity-panel"><div class="panel-heading"><div><h2>Aktivitas terbaru</h2><p>Riwayat aktivitas pengguna di aplikasi.</p></div>{% if session.get('role') == 'admin' %}<a class="btn" href="{{ url_for('activity_log') }}">Lihat semua</a>{% endif %}</div>
+{% if activities %}<div class="activity-list">{% for item in activities %}<div class="activity-row"><div class="activity-symbol">{% if item.aktivitas == 'hapus' %}−{% elif item.aktivitas == 'edit' %}✎{% elif item.aktivitas == 'tambah' %}+{% else %}↗{% endif %}</div><div class="activity-info"><strong>{{ item.username }} · {{ item.aktivitas|title }} {{ item.tabel_data|replace('_',' ') }}</strong><small>{{ item.detail or '—' }}</small></div><time>{{ item.waktu }}</time></div>{% endfor %}</div>{% else %}<div class="empty compact">Belum ada aktivitas yang tercatat.</div>{% endif %}</div>
+{% endblock %}

@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>{% block title %}KosKita{% endblock %}</title>
+  <script>
+    (function(){try{const t=localStorage.getItem('koskita-theme');if(t==='dark')document.documentElement.dataset.theme='dark';}catch(e){}})();
+  </script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+{% if session.get('user_id') %}
+<div class="layout">
+  <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">Kos<span>Kita</span><small>Manajemen kos</small></div>
+    <a class="nav-link" href="{{ url_for('dashboard') }}">▦ <span>Dashboard</span></a>
+    <div class="nav-label">DATA MASTER</div>
+    {% for key, item in [('pemilik','Pemilik'),('penghuni','Penghuni'),('gedung_kos','Gedung kos'),('kamar','Kamar'),('fasilitas_kamar','Fasilitas kamar'),('akun_pengguna','Akun pengguna')] %}
+      <a class="nav-link" href="{{ url_for('list_data', table=key) }}">▤ <span>{{ item }}</span></a>
+    {% endfor %}
+    <div class="nav-label">TRANSAKSI</div>
+    {% for key, item in [('kontrak_sewa','Kontrak sewa'),('tagihan_bulanan','Tagihan bulanan'),('pembayaran','Pembayaran'),('keluhan','Keluhan')] %}
+      <a class="nav-link" href="{{ url_for('list_data', table=key) }}">▧ <span>{{ item }}</span></a>
+    {% endfor %}
+    {% if session.get('role') == 'admin' %}<a class="nav-link" href="{{ url_for('activity_log') }}">◷ <span>Activity Log</span></a>{% endif %}
+    <form class="logout-form" method="post" action="{{ url_for('logout') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="logout-button" type="submit">↪ <span>Keluar</span></button></form>
+  </aside>
+  <main class="main">
+    <header class="topbar">
+      <div class="topbar-left"><button class="icon-button menu-toggle" id="menuToggle" aria-label="Buka menu">☰</button><span class="topbar-title">Manajemen Kos</span></div>
+      <div class="topbar-right"><button class="icon-button" id="themeToggle" type="button" aria-label="Ganti tema">◐ <span class="theme-label">Mode gelap</span></button><span class="user-chip"><span class="user-avatar">{{ session.get('username','U')[:1]|upper }}</span><span>{{ session.get('username') }} <small>{{ session.get('role') }}</small></span></span></div>
+    </header>
+    <section class="content">
+      {% with messages = get_flashed_messages(with_categories=true) %}{% for category, message in messages %}<div class="alert {{ category }}">{{ message }}</div>{% endfor %}{% endwith %}
+      {% block content %}{% endblock %}
+    </section>
+  </main>
+</div>
+{% else %}
+  {% with messages = get_flashed_messages(with_categories=true) %}{% for category, message in messages %}<div class="alert {{ category }}">{{ message }}</div>{% endfor %}{% endwith %}
+  {% block public_content %}{% endblock %}
+{% endif %}
+<script>
+(function(){
+ const root=document.documentElement, toggle=document.getElementById('themeToggle');
+ function label(){if(toggle){const dark=root.dataset.theme==='dark';toggle.innerHTML=(dark?'☀':'◐')+' <span class="theme-label">'+(dark?'Mode terang':'Mode gelap')+'</span>';}}
+ if(toggle){label();toggle.addEventListener('click',()=>{root.dataset.theme=root.dataset.theme==='dark'?'light':'dark';try{localStorage.setItem('koskita-theme',root.dataset.theme)}catch(e){}label();});}
+ const sidebar=document.getElementById('sidebar'),backdrop=document.getElementById('sidebarBackdrop'),menu=document.getElementById('menuToggle');
+ function closeMenu(){if(sidebar)sidebar.classList.remove('open');if(backdrop)backdrop.classList.remove('show');}
+ if(menu)menu.addEventListener('click',()=>{sidebar.classList.toggle('open');backdrop.classList.toggle('show')});
+ if(backdrop)backdrop.addEventListener('click',closeMenu);
+})();
+</script>
+{% block scripts %}{% endblock %}
+</body></html>
